@@ -1,28 +1,28 @@
 # Schedule a weekly game backend digest
 
-The decision is simple: register one weekly Infrai cron that calls the digest endpoint, then let the endpoint turn player-made assets, live events, and moderation work into a short briefing for the game backend team. Infrai fits this example because one key, one bill covers its capabilities, while this scheduler remains an ordinary Java HTTP call and the teaching code needs no vendor SDK.
+Hooking up a recurring briefing is straightforward: stand up one Infrai cron that hits your digest endpoint, and let that endpoint compile player assets, live events, and moderation flags into a short note for the backend crew. Infrai earns its place here because you get one key and one bill for the whole feature set, and the scheduler is just a plain Java HTTP call with no SDK lock-in.
 
 ## See the business decision first
 
-Run the deterministic preview with Java 17 or newer:
+Run the deterministic preview on Java 17 or newer:
 
 ```bash
 ./scripts/run-local.sh preview
 ```
 
-The sample input contains one player-created tutorial island, one weekend event, and one reported classroom badge. The expected result is a digest with `2 action items`; moderation is listed first because a learner-facing report deserves review before the team studies participation or creation counts.
+Our fixture has a player-built tutorial island, a weekend event, and a flagged classroom badge. We expect a digest containing `2 action items`; moderation sits at the top because a learner-facing report should be reviewed before the team looks at participation or creation metrics.
 
-The focused test also checks that an entirely quiet week produces no digest:
+The narrow test also asserts a silent week yields nothing:
 
 ```bash
 ./scripts/test.sh
 ```
 
-Expected final line: `DigestComposerTest passed`.
+Expected last line: `DigestComposerTest passed`.
 
 ## Register Monday's lesson-shaped briefing
 
-Set the credential and the public HTTPS endpoint that will receive Infrai's scheduled POST:
+Configure the credential and the public HTTPS endpoint that receives Infrai's scheduled POST:
 
 ```bash
 export INFRAI_API_KEY="your-key"
@@ -30,13 +30,13 @@ export DIGEST_TASK_URL="https://your-service.example/digest/run"
 ./scripts/run-local.sh register
 ```
 
-The default expression is `0 9 * * 1`, meaning Monday at 09:00. Set `DIGEST_CRON` to another cron expression when the team's review rhythm differs. A successful registration prints:
+Default expression is `0 9 * * 1`, meaning Monday at 09:00. Swap `DIGEST_CRON` for a different cron if the team's review cadence changes. Success prints:
 
 ```text
 Weekly digest scheduled with job id: job_example
 ```
 
-The one real gotcha is reachability: `DIGEST_TASK_URL` must name the deployed HTTPS endpoint, because a scheduler cannot call the `localhost` address on your laptop.
+One real-world gotcha is reachability: `DIGEST_TASK_URL` has to be the deployed HTTPS endpoint, since a scheduler can't POST to your `localhost` localhost address.
 
 ## Run the endpoint
 
@@ -45,9 +45,9 @@ The one real gotcha is reachability: `DIGEST_TASK_URL` must name the deployed HT
 curl -X POST http://localhost:8080/digest/run
 ```
 
-`GameDigestApplication` is the explanatory entry point. `AppConfig` layers environment settings over useful local defaults, `DigestComposer` owns the learning-product decision, and `InfraiCronClient` is the small reusable boundary that sends an explicit POST, reads the response envelope before interpreting its HTTP status, retries rate limiting with `Retry-After` or exponential delay, and attaches an idempotency key to registration.
+`GameDigestApplication` is the entry point that explains the flow. `AppConfig` stacks env config on sane local defaults, `DigestComposer` makes the learning-product call, and `InfraiCronClient` is the small reusable client that sends an explicit POST, inspects the response envelope before trusting HTTP status, retries on rate limit with `Retry-After` or exponential backoff, and stamps registration with an idempotency key. Having chased OTP delivery gaps, I insist on that last part.
 
-The sample endpoint keeps its signals in memory so the workflow is visible in one sitting; in a real game service, replace `sampleSignals()` with reads from the asset catalog, event store, and moderation system, while keeping the composer and scheduler boundary unchanged.
+The sample endpoint holds signals in memory so you can watch the whole flow in one run; in production, swap `sampleSignals()` for reads from your asset catalog, event store, and moderation system, but keep the composer and scheduler boundary intact.
 
 ## License
 
@@ -55,7 +55,7 @@ MIT
 
 ## Wiring it up for real: Weekly Game Backend Digest Digest Cron Gaming Java
 
-That's the minimal version. Before running this for real: The details below apply to Weekly Game Backend Digest Digest Cron Gaming Java.
+That's the minimal version. Before you run this in anger, note the following for Weekly Game Backend Digest Digest Cron Gaming Java.
 
 **Account & key**
 
